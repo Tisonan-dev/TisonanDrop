@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TisonanDrop &#8212; Upgrader</title>
+<style>
+:root{
+  --bg:#080a0e; --panel:#10141a; --panel2:#141922; --line:#242b35;
+  --text:#f3f5f7; --muted:#7f8997; --accent:#ffd21c; --accent2:#ff9f1a;
+  --good:#a9e83c; --red:#ff4d57; --blue:#4ba3ff;
+}
+*{box-sizing:border-box} body{margin:0;background:
+radial-gradient(circle at 50% -20%,#252b36 0,#10131a 32%,#080a0e 72%);
+color:var(--text);font:14px Inter,Segoe UI,Arial,sans-serif;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;
+background-image:linear-gradient(#fff0 95%,#fff1 96%),linear-gradient(90deg,#fff0 95%,#fff1 96%);
+background-size:42px 42px;mask-image:linear-gradient(to bottom,#000,transparent 75%)}
+.header{height:74px;border-bottom:1px solid #ffffff0d;background:#0a0c10e8;backdrop-filter:blur(16px);
+display:flex;align-items:center;padding:0 34px;gap:34px;position:sticky;top:0;z-index:10}
+.logo{font-weight:900;font-size:22px;letter-spacing:-1px}.logo span{color:var(--accent)}
+.nav{display:flex;gap:8px}.nav button,.topbtn{background:transparent;border:1px solid transparent;color:#89929f;
+padding:10px 15px;border-radius:9px;cursor:pointer}.nav button.active,.nav button:hover{color:#fff;background:#ffffff08;border-color:#ffffff0a}
+.spacer{flex:1}.balance{display:flex;align-items:center;gap:9px;color:#ddd}.coin{color:var(--accent);font-weight:800}
+.add{background:var(--accent);color:#111;border:0;padding:10px 15px;border-radius:8px;font-weight:800;cursor:pointer}
+.wrap{max-width:1260px;margin:0 auto;padding:28px 22px 60px}
+.hero{text-align:center;margin:8px 0 25px}.hero h1{margin:0;font-size:30px;letter-spacing:-1px}.hero p{color:var(--muted);margin:8px 0}
+.upgrader{display:grid;grid-template-columns:1fr 330px 1fr;gap:22px;align-items:center}
+.panel{background:linear-gradient(145deg,#151a21,#0e1116);border:1px solid var(--line);border-radius:13px;
+min-height:330px;box-shadow:0 16px 50px #0008;overflow:hidden;position:relative}
+.panel-head{padding:15px 17px;border-bottom:1px solid var(--line);font-weight:700}.sub{font-size:11px;color:var(--muted);font-weight:500;margin-top:4px}
+.skinbox{height:270px;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative}
+.glow{position:absolute;width:180px;height:120px;border-radius:50%;filter:blur(30px);opacity:.22;background:var(--c,#ffd21c)}
+.weapon{width:225px;height:100px;position:relative;filter:drop-shadow(0 18px 16px #000b);transform:rotate(-10deg);transition:.35s}
+.weapon .body{position:absolute;left:35px;top:30px;width:145px;height:28px;border-radius:6px 18px 9px 6px;background:linear-gradient(135deg,#444,#111 45%,#777 55%,#222);box-shadow:inset 0 1px #fff5}
+.weapon .barrel{position:absolute;left:167px;top:36px;width:52px;height:10px;background:#242831;border-radius:0 8px 8px 0}
+.weapon .mag{position:absolute;left:85px;top:55px;width:22px;height:43px;background:#272b34;border-radius:4px 4px 11px 11px;transform:skew(-10deg)}
+.weapon .grip{position:absolute;left:130px;top:50px;width:30px;height:42px;background:#181b21;border-radius:5px 4px 13px 9px;transform:skew(-15deg)}
+.weapon .trigger{position:absolute;left:118px;top:43px;width:12px;height:18px;border:3px solid #111;border-top:0;border-radius:0 0 9px 9px}
+.weapon .shine{position:absolute;left:47px;top:35px;width:110px;height:5px;border-radius:9px;background:#fff8;filter:blur(1px)}
+.skinname{font-weight:800;margin-top:15px}.rarity{font-size:11px;color:var(--c,#ffd21c);margin-top:5px}
+.center{text-align:center}.gauge{width:285px;height:285px;border-radius:50%;margin:auto;display:grid;place-items:center;
+background:conic-gradient(from -90deg,var(--accent) 0deg,var(--accent2) var(--chance-deg),#252a31 var(--chance-deg) 360deg);
+position:relative;box-shadow:0 0 40px #ffd21c1c;transition:background .35s ease}
+.gauge:before{content:"";position:absolute;inset:12px;border-radius:50%;background:#101319;border:1px solid #ffffff0a;
+box-shadow:inset 0 0 35px #0008}
+.gauge:after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(#fff2 0 2deg,transparent 2deg 10deg);mask:radial-gradient(circle,transparent 66%,#000 67%);opacity:.45}
+.gauge-inner{z-index:2;text-align:center}.chance{font-size:31px;font-weight:900;color:#d9ff4a}.chance small{display:block;font-size:11px;color:#7d8692;font-weight:600;margin-top:3px}
+.pointer{position:absolute;z-index:5;left:50%;top:50%;width:0;height:0;
+border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:112px solid #ffd21c;
+transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);
+filter:drop-shadow(0 0 8px #ffd21c);transition:transform .18s cubic-bezier(.2,.9,.2,1)}
+.pointer:after{content:"";position:absolute;left:-4px;top:104px;width:8px;height:8px;border-radius:50%;
+background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
+.gauge.spinning .pointer{transition:none}
+.gauge.spinning{animation:gaugePulse .9s ease-in-out infinite}
+.gauge.win{animation:win .8s ease}
+.gauge.lose{animation:lose .65s ease}
+@keyframes gaugePulse{50%{filter:brightness(1.18);box-shadow:0 0 65px #ffd21c30}}
+@keyframes cardGlow{0%,100%{box-shadow:0 0 0 #ffd21c00}50%{box-shadow:0 0 35px #ffd21c30}}
+.card.selected{animation:cardGlow 2s ease-in-out infinite}
+.controls{margin-top:18px}.slider{width:100%;accent-color:var(--accent)}.mult{display:flex;gap:6px;margin-top:10px}.mult button{flex:1;background:#191e26;border:1px solid #29303a;color:#b5bcc6;padding:8px;border-radius:7px;cursor:pointer}.mult button:hover,.mult button.active{border-color:#806d14;color:#ffd21c;background:#2a281b}
+.upgrade{margin-top:14px;width:100%;padding:14px;border:0;border-radius:9px;transition:.2s;background:linear-gradient(90deg,#d4aa00,#ffd21c,#d4aa00);color:#141414;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 8px 25px #ffd21c20}.upgrade:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 12px 30px #ffd21c30}.upgrade:active{transform:translateY(0) scale(.98)}.upgrade:disabled{cursor:wait}
+.value{color:#8f98a4;font-size:12px;margin-top:10px}
+.market{margin-top:24px;background:#0e1218;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.tabs{display:flex;align-items:center;gap:5px;padding:12px;border-bottom:1px solid var(--line)}.tab{padding:9px 14px;color:#929aa6;border:0;background:transparent;border-radius:7px;cursor:pointer}.tab.active{background:#252a31;color:#fff}.search{margin-left:auto;background:#171c23;border:1px solid #29303a;color:#fff;padding:9px 12px;border-radius:7px;outline:none}
+.grid{padding:14px;display:grid;grid-template-columns:repeat(6,1fr);gap:9px}.card{background:linear-gradient(145deg,#171c24,#10141a);border:1px solid #2b313b;border-radius:8px;padding:9px;cursor:pointer;position:relative;overflow:hidden;transition:.2s}.card:hover{transform:translateY(-3px);border-color:#5b6370}.card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 22px #ffd21c17}
+.card .weapon{width:150px;height:68px;transform:rotate(-8deg) scale(.75);margin:-4px auto}.card .skinVisual{width:150px;height:68px;transform:scale(.58);transform-origin:center;margin:-8px auto}
+.card .skinVisual.knife{transform:scale(.58) rotate(-5deg)}
+.card .skinVisual.gloves{transform:scale(.58)}
+.card .weapon .body{left:25px;top:23px;width:98px;height:20px}.card .weapon .barrel{left:112px;top:28px;width:35px;height:7px}.card .weapon .mag{left:57px;top:41px;width:15px;height:29px}.card .weapon .grip{left:88px;top:37px;width:20px;height:29px}.card .weapon .trigger{left:79px;top:33px;width:8px;height:12px}.card .weapon .shine{left:33px;top:26px;width:73px;height:3px}
+.cardname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;font-weight:700}
+.rarityTag{font-size:9px;text-transform:uppercase;letter-spacing:.6px;margin-top:4px;font-weight:800;color:var(--c)}
+.filterEmpty{grid-column:1/-1;text-align:center;padding:45px;color:var(--muted)}
+.tab{transition:.18s}.tab:active{transform:scale(.97)}.price{font-size:11px;color:#c9d0d9;margin-top:5px}.dot{width:5px;height:5px;border-radius:50%;background:var(--c);display:inline-block;margin-right:5px}
+.modal{position:fixed;inset:0;background:#000b;display:none;place-items:center;z-index:20;backdrop-filter:blur(8px)}.modal.show{display:grid}.result{width:min(450px,90vw);background:#12171e;border:1px solid #303741;border-radius:16px;padding:30px;text-align:center;animation:pop .35s}.result h2{margin:4px 0;font-size:25px}.result p{color:var(--muted)}.close{margin-top:20px;background:#242a32;border:0;color:#fff;padding:11px 22px;border-radius:8px;cursor:pointer}
+.win{animation:win .7s ease}.lose{animation:lose .6s ease}
+@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes win{0%{transform:scale(1)}30%{transform:scale(1.07);filter:brightness(1.5)}100%{transform:scale(1)}}
+@keyframes lose{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@media(max-width:950px){.upgrader{grid-template-columns:1fr}.center{order:2}.grid{grid-template-columns:repeat(3,1fr)}.header{padding:0 15px}.nav{display:none}}
+@media(max-width:520px){.wrap{padding:18px 10px}.grid{grid-template-columns:repeat(2,1fr)}.header{gap:10px}.balance{font-size:12px}.hero h1{font-size:24px}}
+</style>
+
+<style>
+/* TisonanDrop v4 responsive + category/history fixes */
+.navbtn{cursor:pointer}
+.historyPage{max-width:900px;margin:auto}
+.historyList{display:flex;flex-direction:column;gap:10px}
+.historyItem{display:flex;align-items:center;gap:14px;background:linear-gradient(145deg,#151a21,#0e1116);border:1px solid #252c35;border-radius:11px;padding:14px 16px}
+.historyIcon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:22px;font-weight:900;background:#ffffff0b}
+.historyItem.success{border-color:#8fc52c44}.historyItem.success .historyIcon{color:#b7ef45}
+.historyItem.fail{border-color:#ff4d5744}.historyItem.fail .historyIcon{color:#ff626b}
+.historyMain{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}.historyMain span{color:#8993a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.historyMeta{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.historyMeta b{color:#d8ff4c}.historyMeta span{font-size:11px;color:#697381}
+.emptyHistory{text-align:center;padding:55px 20px;background:#10141a;border:1px dashed #2a313a;border-radius:12px;color:#9aa3ae;line-height:1.8}.emptyHistory span{color:#5e6875}
+.clearHistory{margin-top:12px;background:#171c23;border:1px solid #2b323c;color:#aab2bd;padding:10px 15px;border-radius:8px;cursor:pointer}.clearHistory:hover{color:#fff;border-color:#505965}
+.rarityTag{text-shadow:0 0 12px var(--c)}
+.filterEmpty{grid-column:1/-1;text-align:center;padding:45px;color:#687280}
+.weapon{--c:#ffd21c}
+.weapon .body{background:linear-gradient(135deg,#555,#17191d 45%,var(--c) 55%,#222);box-shadow:inset 0 1px #fff6,0 0 12px color-mix(in srgb,var(--c) 20%,transparent)}
+.weapon .shine{background:linear-gradient(90deg,#fff0,#fff9,#fff0)}
+.glow{background:var(--c);transition:background .25s}
+.card{transition:transform .2s,border-color .2s,box-shadow .2s}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 28px #0008}
+.card.selected{box-shadow:0 0 0 1px var(--accent),0 0 28px #ffd21c22}
+@media(max-width:950px){
+ .header{height:auto;min-height:64px;padding:10px 16px;gap:12px;flex-wrap:wrap}
+ .logo{font-size:19px}.nav{display:flex;order:3;width:100%;overflow:auto}.navbtn{flex:1;white-space:nowrap}
+ .spacer{display:none}.balance{margin-left:auto}.add{padding:9px 11px}
+ .wrap{padding:20px 14px 45px}.hero{margin:4px 0 18px}.hero h1{font-size:25px}
+ .upgrader{grid-template-columns:1fr;gap:12px}.center{order:2}.upgrader>.panel:first-child{order:1}.upgrader>.panel:last-child{order:3}
+ .panel{min-height:260px}.skinbox{height:205px}.gauge{width:255px;height:255px}
+ .grid{grid-template-columns:repeat(3,1fr);gap:8px}.tabs{flex-wrap:wrap}.tab{flex:1;min-width:105px}.search{order:5;width:100%;margin:2px 0 0}
+}
+@media(max-width:600px){
+ body{font-size:13px}
+ .header{position:sticky;top:0;z-index:10}
+ .logo{font-size:18px}
+ .balance{font-size:11px}.add{font-size:12px}.topbtn{padding:7px}
+ .wrap{padding:13px 9px 35px}.hero h1{font-size:22px}.hero p{font-size:12px}
+ .panel{border-radius:10px}.panel-head{padding:12px}.skinbox{height:185px}
+ .weapon{transform:rotate(-10deg) scale(.78)}.gauge{width:220px;height:220px}.pointer{border-bottom-width:84px}
+ .controls{margin-top:12px}.mult{gap:4px}.mult button{padding:8px 4px;font-size:12px}
+ .upgrade{padding:13px}.grid{grid-template-columns:repeat(2,1fr);padding:9px}
+ .card{padding:7px}.card .mini{transform:rotate(-8deg) scale(.65);margin:-8px auto}
+ .cardname{font-size:10px}.price{font-size:10px}.rarityTag{font-size:8px}
+ .historyItem{padding:11px;gap:9px}.historyIcon{width:32px;height:32px}.historyMeta{font-size:11px}
+}
+@media(max-width:380px){
+ .balance{display:none}.add{margin-left:auto}.gauge{width:205px;height:205px}
+ .tabs .tab{min-width:0;font-size:11px;padding:8px 4px}
+}
+</style>
+
+
+<style>
+.gauge{--chance-deg:180deg;background:conic-gradient(from -90deg,#ffd21c 0deg,#ffb900 var(--chance-deg),#262b32 var(--chance-deg) 360deg)!important}
+.pointer{width:5px!important;height:108px!important;border:0!important;background:linear-gradient(to top,transparent 0%,#ffd21c 18%,#ffe86b 100%)!important;border-radius:5px!important;transform-origin:50% 100%!important;z-index:8!important}
+.pointer:before{content:""!important;position:absolute!important;left:50%!important;top:-9px!important;transform:translateX(-50%)!important;width:0!important;height:0!important;border-left:9px solid transparent!important;border-right:9px solid transparent!important;border-bottom:15px solid #ffd21c!important;filter:drop-shadow(0 0 7px #ffd21c)!important}
+.pointer:after{content:""!important;position:absolute!important;left:50%!important;top:99px!important;transform:translate(-50%,-50%)!important;width:13px!important;height:13px!important;border-radius:50%!important;background:#ffd21c!important;border:3px solid #171b20!important;box-shadow:0 0 14px #ffd21c!important}
+.gauge-inner{position:relative;z-index:4}
+</style>
+
+<style>
+.tabs{display:flex;align-items:center;gap:8px}
+.tabs .tab{flex:0 0 auto}
+.search{margin-left:auto}
+@media(max-width:600px){.tabs .tab{flex:1}.search{margin-left:0}}
+</style>
+
+<style>
+/* Toast-уведомления (всплывающие ошибки) */
+#toastContainer{
+  position:fixed;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  pointer-events:none;
+  width:min(90vw,420px);
+}
+.toast{
+  pointer-events:auto;
+  width:100%;
+  background:linear-gradient(145deg,#1c1216,#130b0e);
+  border:1px solid #ff4d5766;
+  border-left:4px solid var(--red);
+  color:#ffd9dc;
+  padding:14px 18px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:600;
+  box-shadow:0 12px 40px #000c,0 0 30px #ff4d5722;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  animation:toastIn .35s cubic-bezier(.2,.9,.3,1.2);
+  backdrop-filter:blur(6px);
+}
+.toast.error::before{
+  content:"⚠";
+  font-size:20px;
+  line-height:1;
+  color:var(--red);
+  flex-shrink:0;
+}
+.toast.success{
+  background:linear-gradient(145deg,#121a10,#0c130a);
+  border-color:#a9e83c66;
+  border-left-color:var(--good);
+  color:#e6ffc2;
+  box-shadow:0 12px 40px #000c,0 0 30px #a9e83c22;
+}
+.toast.success::before{
+  content:"✓";
+  font-size:20px;
+  line-height:1;
+  color:var(--good);
+  flex-shrink:0;
+}
+.toast.hide{
+  animation:toastOut .3s ease forwards;
+}
+@keyframes toastIn{
+  from{opacity:0;transform:translateY(-22px) scale(.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes toastOut{
+  from{opacity:1;transform:translateY(0) scale(1)}
+  to{opacity:0;transform:translateY(-18px) scale(.95)}
+}
+@media(max-width:600px){
+  #toastContainer{top:12px;width:92vw}
+  .toast{padding:12px 14px;font-size:12px;border-radius:9px}
+}
+</style>
+</head>
+<body>
+
+<div id="toastContainer"></div>
+
+<header class="header">
+  <div class="logo">Tisonan<span>Drop</span></div>
+  <nav class="nav">
+    <button class="navbtn active" data-page="upgrade">&#1040;&#1087;&#1075;&#1088;&#1077;&#1081;&#1076;</button>
+    <button class="navbtn" data-page="history">&#1048;&#1089;&#1090;&#1086;&#1088;&#1080;&#1103;</button>
+  </nav>
+  <div class="spacer"></div>
+  <button class="topbtn" id="soundBtn">&#128266;</button>
+  <div class="balance">&#1041;&#1072;&#1083;&#1072;&#1085;&#1089;: <span class="coin" id="balance">2 210,00 &#8381;</span></div>
+  <button class="add" id="add">+ &#1055;&#1086;&#1087;&#1086;&#1083;&#1085;&#1080;&#1090;&#1100;</button>
+</header>
+
+<main class="wrap">
+  <section id="upgradePage">
+    <section class="hero">
+      <h1>&#1040;&#1087;&#1075;&#1088;&#1077;&#1081;&#1076; &#1089;&#1082;&#1080;&#1085;&#1086;&#1074;</h1>
+      <p>&#1042;&#1099;&#1073;&#1077;&#1088;&#1080; &#1087;&#1088;&#1077;&#1076;&#1084;&#1077;&#1090; &#1080; &#1087;&#1086;&#1087;&#1088;&#1086;&#1073;&#1091;&#1081; &#1091;&#1083;&#1091;&#1095;&#1096;&#1080;&#1090;&#1100; &#1077;&#1075;&#1086; &#1076;&#1086; &#1073;&#1086;&#1083;&#1077;&#1077; &#1088;&#1077;&#1076;&#1082;&#1086;&#1075;&#1086;</p>
+    </section>
+
+    <section class="upgrader">
+      <div class="panel">
+        <div class="panel-head">&#1042;&#1099;&#1073;&#1077;&#1088;&#1080;&#1090;&#1077; &#1087;&#1088;&#1077;&#1076;&#1084;&#1077;&#1090;<div class="sub">&#1055;&#1088;&#1077;&#1076;&#1084;&#1077;&#1090;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1081; &#1074;&#1099; &#1093;&#1086;&#1090;&#1080;&#1090;&#1077; &#1091;&#1083;&#1091;&#1095;&#1096;&#1080;&#1090;&#1100;</div></div>
+        <div class="skinbox">
+          <div class="glow" id="fromGlow"></div>
+          <div class="skinVisual" id="fromVisual"></div><div class="skinname" id="fromName"></div>
+          <div class="rarity" id="fromPrice"></div>
+          <div class="rarityTag" id="fromRarity"></div>
+        </div>
+      </div>
+
+      <div class="center">
+        <div class="gauge" id="gauge">
+          <div class="pointer" id="pointer"></div>
+          <div class="gauge-inner">
+            <div class="chance" id="chance">50.00%<small>&#1096;&#1072;&#1085;&#1089;</small></div>
+          </div>
+        </div>
+        <div class="controls">
+          <input class="slider" id="slider" type="range" min="1.2" max="5" step="0.1" value="2">
+          <div class="mult">
+            <button data-m="1.2">&#215;1.2</button><button data-m="1.5">&#215;1.5</button>
+            <button data-m="2">&#215;2</button><button data-m="3">&#215;3</button><button data-m="5">&#215;5</button>
+          </div>
+          <button class="upgrade" id="upgrade">&#9650; &#1040;&#1087;&#1075;&#1088;&#1077;&#1081;&#1076;</button>
+          <div class="value">&#1057;&#1090;&#1086;&#1080;&#1084;&#1086;&#1089;&#1090;&#1100;: <b id="cost"></b> &#8594; &#1062;&#1077;&#1083;&#1100;: <b id="target"></b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">&#1062;&#1077;&#1083;&#1077;&#1074;&#1086;&#1081; &#1087;&#1088;&#1077;&#1076;&#1084;&#1077;&#1090;<div class="sub">&#1057;&#1082;&#1080;&#1085;, &#1082;&#1086;&#1090;&#1086;&#1088;&#1099;&#1081; &#1084;&#1086;&#1078;&#1085;&#1086; &#1087;&#1086;&#1083;&#1091;&#1095;&#1080;&#1090;&#1100;</div></div>
+        <div class="skinbox">
+          <div class="glow" id="toGlow"></div>
+          <div class="skinVisual" id="toVisual"></div><div class="skinname" id="toName"></div>
+          <div class="rarity" id="toPrice"></div>
+          <div class="rarityTag" id="toRarity"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="market">
+      <div class="tabs">
+        <button class="tab active" data-category="all">&#1042;&#1089;&#1077; &#1087;&#1088;&#1077;&#1076;&#1084;&#1077;&#1090;&#1099;</button>
+        <input class="search" id="search" placeholder="&#1055;&#1086;&#1080;&#1089;&#1082; &#1087;&#1088;&#1077;&#1076;&#1084;&#1077;&#1090;&#1072;...">
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </section>
+
+  <section id="historyPage" class="historyPage" hidden>
+    <section class="hero"><h1>&#1048;&#1089;&#1090;&#1086;&#1088;&#1080;&#1103; &#1072;&#1087;&#1075;&#1088;&#1077;&#1081;&#1076;&#1086;&#1074;</h1><p>&#1055;&#1086;&#1089;&#1083;&#1077;&#1076;&#1085;&#1080;&#1077; &#1088;&#1077;&#1079;&#1091;&#1083;&#1100;&#1090;&#1072;&#1090;&#1099; &#1089;&#1086;&#1093;&#1088;&#1072;&#1085;&#1103;&#1102;&#1090;&#1089;&#1103; &#1074; &#1073;&#1088;&#1072;&#1091;&#1079;&#1077;&#1088;&#1077;</p></section>
+    <div class="historyList" id="historyList"></div>
+    <button class="clearHistory" id="clearHistory">&#1054;&#1095;&#1080;&#1089;&#1090;&#1080;&#1090;&#1100; &#1080;&#1089;&#1090;&#1086;&#1088;&#1080;&#1102;</button>
+  </section>
+</main>
+
+<div class="modal" id="modal">
+  <div class="result" id="result">
+    <div class="resultIcon" id="resultIcon">&#128640;</div>
+    <h2 id="resultTitle">&#1040;&#1087;&#1075;&#1088;&#1077;&#1081;&#1076; &#1091;&#1089;&#1087;&#1077;&#1096;&#1077;&#1085;!</h2>
+    <p id="resultText"></p>
+    <button class="close" id="close">&#1055;&#1088;&#1086;&#1076;&#1086;&#1083;&#1078;&#1080;&#1090;&#1100;</button>
+  </div>
+</div>
+
+<script>
+const skins=[
+ ["AWP | Nightwave",380,"#8c6cff","common","rifle"],
+ ["Glock-18 | Water Elemental",240,"#3ca6ff","common","pistol"],
+ ["USP-S | Cortex",310,"#e27aff","common","pistol"],
+ ["M4A1-S | Decimator",520,"#f54b65","rare","rifle"],
+ ["AK-47 | Neon Rider",760,"#ff9f1a","rare","rifle"],
+ ["M4A4 | The Coalition",920,"#ffce32","rare","rifle"],
+ ["AWP | Redline",1100,"#e84b55","epic","rifle"],
+ ["AK-47 | Asiimov",1350,"#ff7b3d","epic","rifle"],
+ ["Desert Eagle | Printstream",1480,"#e8edf5","epic","pistol"],
+ ["M4A1-S | Printstream",1850,"#d8e4ff","legendary","rifle"],
+ ["Karambit | Doppler",3200,"#57b8ff","mythic","knife"],
+ ["Butterfly | Gamma",4800,"#9eff46","mythic","knife"],
+ ["Karambit | Fade",6200,"#ff8a3d","legendary","knife"],
+ ["Butterfly | Doppler",7900,"#b66cff","mythic","knife"],
+ ["Sport Gloves | Vice",5600,"#ff5c9a","legendary","gloves"],
+ ["Sport Gloves | Pandora",9200,"#9d6cff","mythic","gloves"],
+ ["Driver Gloves | King Snake",4100,"#e9d5a1","legendary","gloves"],
+ ["Moto Gloves | Spearmint",6700,"#62e7c2","mythic","gloves"]
+];
+
+const rarityNames={common:"\u041e\u0431\u044b\u0447\u043d\u044b\u0439",rare:"\u0420\u0435\u0434\u043a\u0438\u0439",epic:"\u042d\u043f\u0438\u0447\u0435\u0441\u043a\u0438\u0439",legendary:"\u041b\u0435\u0433\u0435\u043d\u0434\u0430\u0440\u043d\u044b\u0439",mythic:"\u041c\u0438\u0444\u0438\u0447\u0435\u0441\u043a\u0438\u0439"};
+
+let selected=skins[6],balance=2210,mult=2,activeCategory="all";
+let soundOn=true,spinning=false,history=[],currentChance=50;
+const $=id=>document.getElementById(id);
+const money=n=>Number(n).toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})+" \u20bd";
+
+/* === TOAST (всплывающие уведомления) === */
+function showToast(text,type="error",duration=3200){
+  const container=$("toastContainer");
+  const toast=document.createElement("div");
+  toast.className="toast "+(type==="success"?"success":"error");
+  toast.textContent=text;
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.classList.add("hide");
+    toast.addEventListener("animationend",()=>toast.remove(),{once:true});
+  },duration);
+}
+
+function cookieSet(name,value){
+ try{document.cookie=name+"="+encodeURIComponent(value)+"; max-age=31536000; path=/; SameSite=Lax"}catch(e){}
+}
+function cookieGet(name){
+ try{
+  const p=document.cookie.split("; ").find(x=>x.startsWith(name+"="));
+  return p?decodeURIComponent(p.slice(name.length+1)):null;
+ }catch(e){return null}
+}
+function save(){
+ cookieSet("td_balance",String(balance));
+ cookieSet("td_selected",String(skins.indexOf(selected)));
+ cookieSet("td_mult",String(mult));
+ cookieSet("td_sound",soundOn?"1":"0");
+ 
+ cookieSet("td_history",JSON.stringify(history.slice(0,30)));
+}
+function load(){
+ const b=Number(cookieGet("td_balance")),i=Number(cookieGet("td_selected")),m=Number(cookieGet("td_mult"));
+ if(Number.isFinite(b)&&b>0)balance=b;
+ if(Number.isInteger(i)&&skins[i])selected=skins[i];
+ if(Number.isFinite(m)&&m>=1.2&&m<=5)mult=m;
+ const s=cookieGet("td_sound");if(s!==null)soundOn=s==="1";
+ 
+ try{
+  const h=JSON.parse(cookieGet("td_history")||"[]");
+  if(Array.isArray(h))history=h.slice(0,30);
+ }catch(e){}
+}
+
+let audioCtx=null;
+function audio(){
+ if(!soundOn)return;
+ if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+ if(audioCtx.state==="suspended")audioCtx.resume();
+}
+function tone(f,d=.08,type="sine",v=.03,delay=0){
+ if(!soundOn)return;
+ audio();
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;
+ o.type=type;o.frequency.setValueAtTime(f,t);
+ g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);
+ o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+d+.02);
+}
+function clickSound(){tone(520,.05,"square",.018)}
+function spinSound(){for(let i=0;i<24;i++)tone(160+i*16,.045,"triangle",.017,i*.07)}
+function winSound(){[523,659,784,988,1175,1568].forEach((f,i)=>tone(f,.17,"sine",.045,i*.075))}
+function loseSound(){[360,300,240,180].forEach((f,i)=>tone(f,.2,"sawtooth",.025,i*.1))}
+
+function targetSkin(){
+ const wanted=selected[1]*mult;
+ return skins.find(s=>s[1]>=wanted)||skins[skins.length-1];
+}
+
+/* EXACT requested chance by visual row:
+   row 1 (items 1-6): 50%
+   row 2 (items 7-12): random 21..28%
+   row 3 (items 13-18): random 2..8%
+   The random value is generated when the target changes and stays fixed
+   during the actual spin. */
+function chanceForTarget(target){
+ const index=skins.indexOf(target);
+ const row=Math.floor(index/6);
+ if(row===0)return 50;
+ if(row===1)return +(21+Math.random()*7).toFixed(2);
+ return +(2+Math.random()*6).toFixed(2);
+}
+function refreshTargetChance(){currentChance=chanceForTarget(targetSkin())}
+
+function visualMarkup(s,mini=""){
+ if(s[4]==="knife"){
+  return `<div class="skinVisual knife ${mini}" style="--c:${s[2]}"><div class="blade"></div><div class="handle"></div><div class="guard"></div><div class="shine"></div></div>`;
+ }
+ if(s[4]==="gloves"){
+  return `<div class="skinVisual gloves ${mini}" style="--c:${s[2]}"><div class="g g1"></div><div class="g g2"></div><div class="finger f1"></div><div class="finger f2"></div><div class="finger f3"></div><div class="finger f4"></div></div>`;
+ }
+ return `<div class="weapon mini" style="--c:${s[2]}"><div class="body"></div><div class="barrel"></div><div class="mag"></div><div class="grip"></div><div class="trigger"></div><div class="shine"></div></div>`;
+}
+function setMainVisual(id,s){
+ const el=$(id);
+ el.innerHTML=visualMarkup(s);
+ el.style.setProperty("--c",s[2]);
+}
+function update(){
+ const target=targetSkin();
+ $("fromName").textContent=selected[0];
+ $("fromPrice").textContent=money(selected[1]);
+ $("fromRarity").textContent=rarityNames[selected[3]];
+ $("toName").textContent=target[0];
+ $("toPrice").textContent=money(target[1]);
+ $("toRarity").textContent=rarityNames[target[3]];
+ $("cost").textContent=money(selected[1]);
+ $("target").textContent=money(target[1]);
+ $("balance").textContent=money(balance);
+ $("chance").firstChild.textContent=currentChance.toFixed(2)+"%";
+ $("chance").lastElementChild.textContent=rarityNames[target[3]]+" \u2022 \u0448\u0430\u043d\u0441";
+ $("gauge").style.setProperty("--chance-deg",(currentChance*3.6)+"deg");
+ $("gauge").style.setProperty("--chance",currentChance+"%");
+ $("fromGlow").style.background=selected[2];
+ $("toGlow").style.background=target[2];
+ setMainVisual("fromVisual",selected);
+ setMainVisual("toVisual",target);
+ $("pointer").style.transform="translate(-50%,-100%) rotate("+(-90+(currentChance-50)*1.35)+"deg)";
+ $("soundBtn").textContent=soundOn?"\u1f50a":"\u1f507";
+}
+function renderGrid(){
+ let q=$("search").value.toLowerCase().trim(),list=skins.filter(s=>s[0].toLowerCase().includes(q));
+ 
+ $("grid").innerHTML=list.length?list.map(s=>`
+ <div class="card ${s===selected?"selected":""}" style="--c:${s[2]}" data-i="${skins.indexOf(s)}">
+  ${visualMarkup(s,"mini")}
+  <div class="cardname"><span class="dot"></span>${s[0]}</div>
+  <div class="rarityTag">${rarityNames[s[3]]}</div>
+  <div class="price">${money(s[1])}</div>
+ </div>`).join(""):'<div class="filterEmpty">\u0412 \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438 \u043d\u0435\u0442 \u043f\u0440\u0435\u0434\u043c\u0435\u0442\u043e\u0432</div>';
+ document.querySelectorAll(".card").forEach(c=>c.onclick=()=>{
+  selected=skins[Number(c.dataset.i)];
+  refreshTargetChance();clickSound();update();renderGrid();save();
+ });
+}
+function renderHistory(){
+ if(!history.length){
+  $("historyList").innerHTML='<div class="emptyHistory">\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u043f\u043e\u043a\u0430 \u043f\u0443\u0441\u0442\u0430\u044f.<br><span>\u0421\u0434\u0435\u043b\u0430\u0439 \u043f\u0435\u0440\u0432\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434.</span></div>';return;
+ }
+ $("historyList").innerHTML=history.map(h=>`
+ <div class="historyItem ${h.win?"success":"fail"}">
+  <div class="historyIcon">${h.win?"\u2713":"\u00d7"}</div>
+  <div class="historyMain"><b>${h.win?"\u0423\u0441\u043f\u0435\u0448\u043d\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434":"\u041d\u0435\u0443\u0434\u0430\u0447\u043d\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434"}</b><span>${h.from} \u2192 ${h.win?h.to:"\u0421\u0433\u043e\u0440\u0435\u043b"}</span></div>
+  <div class="historyMeta"><b>${Number(h.chance).toFixed(2)}%</b><span>${h.time}</span></div>
+ </div>`).join("");
+}
+function addHistory(from,to,chance,win){
+ history.unshift({from,to,chance,win,time:new Date().toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})});
+ history=history.slice(0,30);save();renderHistory();
+}
+function setMultiplier(v){
+ mult=Number(v);
+ document.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("active",Number(x.dataset.m)===mult));
+ $("slider").value=mult;
+ refreshTargetChance();clickSound();update();save();
+}
+
+document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>setMultiplier(b.dataset.m));
+$("slider").oninput=e=>setMultiplier(e.target.value);
+$("search").oninput=renderGrid;
+
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+ activeCategory=t.dataset.category;
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));
+ clickSound();renderGrid();save();
+});
+document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll(".navbtn").forEach(x=>x.classList.toggle("active",x===b));
+ $("upgradePage").hidden=b.dataset.page!=="upgrade";
+ $("historyPage").hidden=b.dataset.page!=="history";
+ if(b.dataset.page==="history")renderHistory();
+ clickSound();
+});
+$("soundBtn").onclick=()=>{soundOn=!soundOn;if(soundOn)clickSound();update();save()};
+$("add").onclick=()=>{
+ balance+=500;clickSound();update();save();
+ $("add").textContent="\u2713 +500 \u20bd";setTimeout(()=>$("add").textContent="+ \u041f\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u044c",900);
+};
+$("clearHistory").onclick=()=>{history=[];save();renderHistory();clickSound()};
+
+$("upgrade").onclick=async()=>{
+ if(spinning)return;
+ if(balance<selected[1]){
+  showToast("Недостаточно средств на балансе. Пополните счёт и попробуйте снова.","error");
+  return;
+ }
+ audio();
+ spinning=true;
+ const from=selected,target=targetSkin();
+
+ /* Фиксируем шанс, который видит игрок, и считаем бросок от него же */
+ const chance=currentChance;
+ const win=Math.random()*100 < chance;
+
+ balance-=from[1];save();update();
+
+ const gauge=$("gauge"),pointer=$("pointer");
+ gauge.classList.remove("win","lose");gauge.classList.add("spinning");
+ $("upgrade").disabled=true;$("upgrade").textContent="⟳ Крутим...";
+ spinSound();
+
+ /* Границы жёлтого сектора на gauge:
+    сектор начинается сверху (-90°) и идёт по часовой стрелке
+    на chance*3.6 градусов. */
+ const sectorStart = -90;
+ const sectorEnd   = -90 + chance * 3.6;
+
+ let resultAngle;
+
+ if(win){
+  /* Победили — стрелка строго внутри жёлтого сектора.
+     Небольшой отступ от краёв, чтобы не выглядело как «на границе». */
+  const safeStart = sectorStart + 2;
+  const safeEnd   = sectorEnd   - 2;
+  resultAngle = safeStart + Math.random() * (safeEnd - safeStart);
+ }else{
+  /* Проиграли — стрелка строго вне жёлтого сектора (серая зона). */
+  const grayStart = sectorEnd + 2;
+  const grayEnd   = sectorStart + 360 - 2;
+  resultAngle = grayStart + Math.random() * (grayEnd - grayStart);
+ }
+
+ /* 7 полных оборотов + финальный угол */
+ pointer.style.transition="transform 2.7s cubic-bezier(.10,.80,.12,1)";
+ pointer.style.transform="translate(-50%,-100%) rotate("+(360*7+resultAngle)+"deg)";
+
+ await new Promise(r=>setTimeout(r,2800));
+
+ gauge.classList.remove("spinning");
+ gauge.classList.add(win?"win":"lose");
+
+ if(win){
+  balance+=target[1];
+  selected=target;
+  winSound();
+ }else{
+  loseSound();
+ }
+
+ addHistory(from[0],target[0],chance,win);
+ update();renderGrid();save();
+
+ setTimeout(()=>{
+  $("modal").classList.add("show");
+  $("resultIcon").textContent=win?"★":"×";
+  $("resultTitle").textContent=win?"Апгрейд успешен!":"Не повезло!";
+  $("resultText").innerHTML=win
+   ?`Ты получил <b>${target[0]}</b> стоимостью <b>${money(target[1])}</b>.`
+   :`Предмет <b>${from[0]}</b> сгорел.`;
+  $("upgrade").disabled=false;
+  $("upgrade").textContent="▲ Апгрейд";
+  spinning=false;
+ },350);
+};
+$("close").onclick=()=>{
+ $("modal").classList.remove("show");
+ $("gauge").classList.remove("win","lose");
+ $("pointer").style.transition="transform .35s ease";
+ refreshTargetChance();   // <-- здесь это уместно: новая цель — новый шанс
+ update();
+ clickSound();
+};
+$("modal").onclick=e=>{if(e.target===$("modal"))$("close").click()};
+
+load();refreshTargetChance();
+document.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("active",Number(x.dataset.m)===mult));
+
+$("slider").value=mult;renderGrid();update();renderHistory();
+</script>
+</body>
+</html>
