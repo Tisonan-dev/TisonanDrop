@@ -92,8 +92,10 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
 .historyIcon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:22px;font-weight:900;background:#ffffff0b}
 .historyItem.success{border-color:#8fc52c44}.historyItem.success .historyIcon{color:#b7ef45}
 .historyItem.fail{border-color:#ff4d5744}.historyItem.fail .historyIcon{color:#ff626b}
+.historyItem.deposit{border-color:#4ba3ff44}.historyItem.deposit .historyIcon{color:#4ba3ff}
 .historyMain{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}.historyMain span{color:#8993a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .historyMeta{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.historyMeta b{color:#d8ff4c}.historyMeta span{font-size:11px;color:#697381}
+.historyItem.deposit .historyMeta b{color:#4ba3ff}
 .emptyHistory{text-align:center;padding:55px 20px;background:#10141a;border:1px dashed #2a313a;border-radius:12px;color:#9aa3ae;line-height:1.8}.emptyHistory span{color:#5e6875}
 .clearHistory{margin-top:12px;background:#171c23;border:1px solid #2b323c;color:#aab2bd;padding:10px 15px;border-radius:8px;cursor:pointer}.clearHistory:hover{color:#fff;border-color:#505965}
 .rarityTag{text-shadow:0 0 12px var(--c)}
@@ -204,6 +206,21 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
   color:var(--good);
   flex-shrink:0;
 }
+.toast.info{
+  background:linear-gradient(145deg,#0e1520,#0a1018);
+  border-color:#4ba3ff66;
+  border-left-color:var(--blue);
+  color:#cde4ff;
+  box-shadow:0 12px 40px #000c,0 0 30px #4ba3ff22;
+}
+.toast.info::before{
+  content:"₽";
+  font-size:18px;
+  line-height:1;
+  color:var(--blue);
+  flex-shrink:0;
+  font-weight:900;
+}
 .toast.hide{
   animation:toastOut .3s ease forwards;
 }
@@ -220,6 +237,103 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
   .toast{padding:12px 14px;font-size:12px;border-radius:9px}
 }
 </style>
+
+<style>
+/* ===== МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ ===== */
+.deposit-modal{position:fixed;inset:0;background:#000c;display:none;place-items:center;z-index:30;backdrop-filter:blur(10px)}
+.deposit-modal.show{display:grid;animation:depFade .25s ease}
+.deposit-box{
+  width:min(460px,92vw);
+  background:linear-gradient(160deg,#161b24,#0e1218);
+  border:1px solid #2b3340;
+  border-radius:18px;
+  padding:28px 26px 24px;
+  box-shadow:0 30px 90px #000d, 0 0 60px #ffd21c10;
+  animation:depPop .4s cubic-bezier(.2,.9,.3,1.2);
+  position:relative;
+  overflow:hidden;
+}
+.deposit-box:before{
+  content:"";position:absolute;top:-1px;left:20%;right:20%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  filter:blur(1px);
+}
+.deposit-box h2{
+  margin:0 0 6px;font-size:22px;letter-spacing:-.5px;font-weight:800;
+  display:flex;align-items:center;gap:10px;
+}
+.deposit-box h2 .dep-icon{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,#ffd21c,#ff9f1a);
+  display:grid;place-items:center;color:#141414;font-weight:900;font-size:20px;
+  box-shadow:0 6px 18px #ffd21c40;
+}
+.deposit-box .dep-sub{color:var(--muted);font-size:12.5px;margin:0 0 20px;line-height:1.5}
+.dep-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:#8f98a4;font-weight:700;margin-bottom:7px;display:block}
+.dep-input-wrap{position:relative}
+.dep-input-wrap .cur{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:#8f98a4;font-weight:800;font-size:15px;pointer-events:none;
+}
+.dep-input{
+  width:100%;background:#0c1015;border:1.5px solid #2b3340;border-radius:11px;
+  color:#fff;font-size:18px;font-weight:800;padding:14px 46px 14px 16px;
+  outline:none;transition:.2s;font-family:inherit;
+}
+.dep-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #ffd21c1f, 0 0 25px #ffd21c1a}
+.dep-input.invalid{border-color:var(--red);box-shadow:0 0 0 3px #ff4d571f}
+.dep-hint{font-size:11px;color:#6b7583;margin-top:7px;display:flex;justify-content:space-between}
+.dep-hint .lim{color:#8f98a4}
+.dep-hint .err{color:var(--red);font-weight:700;opacity:0;transition:.2s}
+.dep-hint .err.show{opacity:1}
+.dep-quick{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+.dep-quick button{
+  flex:1;min-width:64px;background:#171c23;border:1px solid #2b323c;color:#b5bcc6;
+  padding:9px 6px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;transition:.18s;
+}
+.dep-quick button:hover{border-color:#806d14;color:#ffd21c;background:#2a281b}
+.dep-quick button:active{transform:scale(.96)}
+.dep-details{
+  margin-top:20px;background:#0b0f14;border:1px solid #232a34;border-radius:12px;
+  padding:16px 18px;display:flex;flex-direction:column;gap:11px;
+}
+.dep-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#aab2bd}
+.dep-row span:last-child{font-weight:800;color:#fff}
+.dep-row.total{
+  border-top:1px dashed #2b323c;padding-top:12px;margin-top:2px;font-size:14.5px;
+}
+.dep-row.total span:last-child{color:var(--accent);font-size:17px;text-shadow:0 0 18px #ffd21c55}
+.dep-policy{
+  font-size:11px;color:#7f8997;margin-top:16px;line-height:1.6;text-align:center;
+}
+.dep-policy a{color:var(--accent);text-decoration:none;font-weight:700;border-bottom:1px dotted #ffd21c66;cursor:pointer}
+.dep-policy a:hover{color:#ffe86b;border-bottom-color:#ffe86b}
+.dep-actions{display:flex;gap:10px;margin-top:20px}
+.dep-actions button{
+  flex:1;padding:14px;border:0;border-radius:11px;font-weight:900;font-size:14.5px;
+  cursor:pointer;transition:.2s;font-family:inherit;
+}
+.dep-pay{
+  background:linear-gradient(90deg,#d4aa00,#ffd21c,#d4aa00);color:#141414;
+  box-shadow:0 8px 25px #ffd21c20;
+}
+.dep-pay:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 12px 30px #ffd21c35}
+.dep-pay:active{transform:translateY(0) scale(.98)}
+.dep-pay:disabled{opacity:.5;cursor:wait;transform:none}
+.dep-cancel{
+  background:#1a1f27;color:#b5bcc6;border:1px solid #2b323c;
+}
+.dep-cancel:hover{background:#242a32;color:#fff;border-color:#505965}
+@keyframes depFade{from{opacity:0}to{opacity:1}}
+@keyframes depPop{from{opacity:0;transform:translateY(20px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:520px){
+  .deposit-box{padding:22px 18px 20px;border-radius:15px}
+  .deposit-box h2{font-size:19px}
+  .dep-input{font-size:16px;padding:13px 40px 13px 14px}
+  .dep-actions{flex-direction:column}
+  .dep-actions button{padding:13px}
+}
+</style>
 </head>
 <body>
 
@@ -232,7 +346,7 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
     <button class="navbtn" data-page="history">&#1048;&#1089;&#1090;&#1086;&#1088;&#1080;&#1103;</button>
   </nav>
   <div class="spacer"></div>
-  <button class="topbtn" id="soundBtn">&#128266;</button>
+  <button class="topbtn" id="soundBtn">🔊</button>
   <div class="balance">&#1041;&#1072;&#1083;&#1072;&#1085;&#1089;: <span class="coin" id="balance">2 210,00 &#8381;</span></div>
   <button class="add" id="add">+ &#1055;&#1086;&#1087;&#1086;&#1083;&#1085;&#1080;&#1090;&#1100;</button>
 </header>
@@ -294,11 +408,53 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
   </section>
 
   <section id="historyPage" class="historyPage" hidden>
-    <section class="hero"><h1>&#1048;&#1089;&#1090;&#1086;&#1088;&#1080;&#1103; &#1072;&#1087;&#1075;&#1088;&#1077;&#1081;&#1076;&#1086;&#1074;</h1><p>&#1055;&#1086;&#1089;&#1083;&#1077;&#1076;&#1085;&#1080;&#1077; &#1088;&#1077;&#1079;&#1091;&#1083;&#1100;&#1090;&#1072;&#1090;&#1099; &#1089;&#1086;&#1093;&#1088;&#1072;&#1085;&#1103;&#1102;&#1090;&#1089;&#1103; &#1074; &#1073;&#1088;&#1072;&#1091;&#1079;&#1077;&#1088;&#1077;</p></section>
+    <section class="hero"><h1>&#1048;&#1089;&#1090;&#1086;&#1088;&#1080;&#1103;</h1><p>&#1055;&#1086;&#1089;&#1083;&#1077;&#1076;&#1085;&#1080;&#1077; &#1086;&#1087;&#1077;&#1088;&#1072;&#1094;&#1080;&#1080;</p></section>
     <div class="historyList" id="historyList"></div>
     <button class="clearHistory" id="clearHistory">&#1054;&#1095;&#1080;&#1089;&#1090;&#1080;&#1090;&#1100; &#1080;&#1089;&#1090;&#1086;&#1088;&#1080;&#1102;</button>
   </section>
 </main>
+
+<!-- ===== МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ ===== -->
+<div class="deposit-modal" id="depositModal">
+  <div class="deposit-box">
+    <h2><span class="dep-icon">₽</span> Пополнение баланса</h2>
+    <p class="dep-sub">Введите сумму, на которую хотите пополнить счёт. Средства зачисляются мгновенно.</p>
+
+    <label class="dep-label" for="depInput">Сумма пополнения</label>
+    <div class="dep-input-wrap">
+      <input class="dep-input" id="depInput" type="number" min="100" max="10000" step="50" placeholder="1000" inputmode="numeric">
+      <span class="cur">₽</span>
+    </div>
+    <div class="dep-hint">
+      <span class="lim">Лимит: 100 – 10 000 ₽</span>
+      <span class="err" id="depErr">Вне лимита</span>
+    </div>
+
+    <div class="dep-quick">
+      <button data-q="100">100 ₽</button>
+      <button data-q="500">500 ₽</button>
+      <button data-q="1000">1 000 ₽</button>
+      <button data-q="5000">5 000 ₽</button>
+      <button data-q="10000">10 000 ₽</button>
+    </div>
+
+    <div class="dep-details">
+      <div class="dep-row"><span>К оплате</span><span id="depAmount">0,00 ₽</span></div>
+      <div class="dep-row"><span>Комиссия: 1%</span><span id="depFee">0,00 ₽</span></div>
+      <div class="dep-row total"><span>Итого</span><span id="depTotal">0,00 ₽</span></div>
+    </div>
+
+    <p class="dep-policy">
+      Нажимая кнопку «Оплатить» вы принимаете
+      <a id="depPolicyLink">политику конфиденциальности</a>.
+    </p>
+
+    <div class="dep-actions">
+      <button class="dep-cancel" id="depCancel">Отмена</button>
+      <button class="dep-pay" id="depPay">Оплатить</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal" id="modal">
   <div class="result" id="result">
@@ -310,25 +466,31 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
 </div>
 
 <script>
+// ========== СПИСОК СКИНОВ ==========
 const skins=[
  ["AWP | Nightwave",380,"#8c6cff","common","rifle"],
  ["Glock-18 | Water Elemental",240,"#3ca6ff","common","pistol"],
  ["USP-S | Cortex",310,"#e27aff","common","pistol"],
+ ["P250 | Cyber Shell",180,"#7aedff","common","pistol"],
+ ["MP9 | Hydra",150,"#5ce3a0","common","smg"],
+ ["Galil AR | Vandal",280,"#e8a33d","common","rifle"],
+ ["FAMAS | Mecha Industries",330,"#6ec9ff","common","rifle"],
  ["M4A1-S | Decimator",520,"#f54b65","rare","rifle"],
  ["AK-47 | Neon Rider",760,"#ff9f1a","rare","rifle"],
  ["M4A4 | The Coalition",920,"#ffce32","rare","rifle"],
+ ["AWP | Chromatic Aberration",680,"#a57aff","rare","rifle"],
+ ["Desert Eagle | Ocean Drive",590,"#3dc9ff","rare","pistol"],
  ["AWP | Redline",1100,"#e84b55","epic","rifle"],
  ["AK-47 | Asiimov",1350,"#ff7b3d","epic","rifle"],
  ["Desert Eagle | Printstream",1480,"#e8edf5","epic","pistol"],
+ ["M4A1-S | Player Two",1250,"#ff6b9d","epic","rifle"],
+ ["USP-S | Kill Confirmed",1320,"#ff4d6d","epic","pistol"],
  ["M4A1-S | Printstream",1850,"#d8e4ff","legendary","rifle"],
- ["Karambit | Doppler",3200,"#57b8ff","mythic","knife"],
- ["Butterfly | Gamma",4800,"#9eff46","mythic","knife"],
- ["Karambit | Fade",6200,"#ff8a3d","legendary","knife"],
- ["Butterfly | Doppler",7900,"#b66cff","mythic","knife"],
- ["Sport Gloves | Vice",5600,"#ff5c9a","legendary","gloves"],
- ["Sport Gloves | Pandora",9200,"#9d6cff","mythic","gloves"],
- ["Driver Gloves | King Snake",4100,"#e9d5a1","legendary","gloves"],
- ["Moto Gloves | Spearmint",6700,"#62e7c2","mythic","gloves"]
+ ["AK-47 | Fire Serpent",2400,"#ff8c42","legendary","rifle"],
+ ["AWP | Dragon Lore",5200,"#ffd700","legendary","rifle"],
+ ["AK-47 | Wild Lotus",6800,"#ff5c9a","mythic","rifle"],
+ ["M4A4 | Howl",8500,"#ff3a3a","mythic","rifle"],
+ ["AWP | Gungnir",9200,"#5ce3ff","mythic","rifle"]
 ];
 
 const rarityNames={common:"\u041e\u0431\u044b\u0447\u043d\u044b\u0439",rare:"\u0420\u0435\u0434\u043a\u0438\u0439",epic:"\u042d\u043f\u0438\u0447\u0435\u0441\u043a\u0438\u0439",legendary:"\u041b\u0435\u0433\u0435\u043d\u0434\u0430\u0440\u043d\u044b\u0439",mythic:"\u041c\u0438\u0444\u0438\u0447\u0435\u0441\u043a\u0438\u0439"};
@@ -338,11 +500,11 @@ let soundOn=true,spinning=false,history=[],currentChance=50;
 const $=id=>document.getElementById(id);
 const money=n=>Number(n).toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})+" \u20bd";
 
-/* === TOAST (всплывающие уведомления) === */
+/* === TOAST === */
 function showToast(text,type="error",duration=3200){
   const container=$("toastContainer");
   const toast=document.createElement("div");
-  toast.className="toast "+(type==="success"?"success":"error");
+  toast.className="toast "+(type==="success"?"success":type==="info"?"info":"error");
   toast.textContent=text;
   container.appendChild(toast);
   setTimeout(()=>{
@@ -351,35 +513,9 @@ function showToast(text,type="error",duration=3200){
   },duration);
 }
 
-function cookieSet(name,value){
- try{document.cookie=name+"="+encodeURIComponent(value)+"; max-age=31536000; path=/; SameSite=Lax"}catch(e){}
-}
-function cookieGet(name){
- try{
-  const p=document.cookie.split("; ").find(x=>x.startsWith(name+"="));
-  return p?decodeURIComponent(p.slice(name.length+1)):null;
- }catch(e){return null}
-}
-function save(){
- cookieSet("td_balance",String(balance));
- cookieSet("td_selected",String(skins.indexOf(selected)));
- cookieSet("td_mult",String(mult));
- cookieSet("td_sound",soundOn?"1":"0");
- 
- cookieSet("td_history",JSON.stringify(history.slice(0,30)));
-}
-function load(){
- const b=Number(cookieGet("td_balance")),i=Number(cookieGet("td_selected")),m=Number(cookieGet("td_mult"));
- if(Number.isFinite(b)&&b>0)balance=b;
- if(Number.isInteger(i)&&skins[i])selected=skins[i];
- if(Number.isFinite(m)&&m>=1.2&&m<=5)mult=m;
- const s=cookieGet("td_sound");if(s!==null)soundOn=s==="1";
- 
- try{
-  const h=JSON.parse(cookieGet("td_history")||"[]");
-  if(Array.isArray(h))history=h.slice(0,30);
- }catch(e){}
-}
+// ========== БЕЗ COOKIES ==========
+function save(){}
+function load(){}
 
 let audioCtx=null;
 function audio(){
@@ -399,24 +535,30 @@ function clickSound(){tone(520,.05,"square",.018)}
 function spinSound(){for(let i=0;i<24;i++)tone(160+i*16,.045,"triangle",.017,i*.07)}
 function winSound(){[523,659,784,988,1175,1568].forEach((f,i)=>tone(f,.17,"sine",.045,i*.075))}
 function loseSound(){[360,300,240,180].forEach((f,i)=>tone(f,.2,"sawtooth",.025,i*.1))}
+function depositSound(){[523,659,784,1046].forEach((f,i)=>tone(f,.15,"sine",.04,i*.08))}
 
+// ========== ЛОГИКА ЦЕЛИ ==========
+// Самый дорогой скин апгрейдится в ×1.5
 function targetSkin(){
- const wanted=selected[1]*mult;
- return skins.find(s=>s[1]>=wanted)||skins[skins.length-1];
+ const maxSkin = skins[skins.length-1];
+ if (selected === maxSkin) {
+   return [maxSkin[0], +(maxSkin[1]*1.5).toFixed(2), maxSkin[2], maxSkin[3], maxSkin[4]];
+ }
+ const wanted = selected[1] * mult;
+ const found = skins.find(s => s[1] >= wanted);
+ const target = found || maxSkin;
+ if (target[1] < selected[1]) return maxSkin;
+ return target;
 }
 
-/* EXACT requested chance by visual row:
-   row 1 (items 1-6): 50%
-   row 2 (items 7-12): random 21..28%
-   row 3 (items 13-18): random 2..8%
-   The random value is generated when the target changes and stays fixed
-   during the actual spin. */
 function chanceForTarget(target){
- const index=skins.indexOf(target);
- const row=Math.floor(index/6);
+ const index = skins.findIndex(s => s[0] === target[0] && Math.abs(s[1] - target[1]) < 1);
+ const row = Math.max(0, Math.floor((index >= 0 ? index : skins.length-1) / 6));
  if(row===0)return 50;
  if(row===1)return +(21+Math.random()*7).toFixed(2);
- return +(2+Math.random()*6).toFixed(2);
+ if(row===2)return +(2+Math.random()*6).toFixed(2);
+ if(row===3)return +(1+Math.random()*4).toFixed(2);
+ return +(0.5+Math.random()*2.5).toFixed(2);
 }
 function refreshTargetChance(){currentChance=chanceForTarget(targetSkin())}
 
@@ -454,7 +596,7 @@ function update(){
  setMainVisual("fromVisual",selected);
  setMainVisual("toVisual",target);
  $("pointer").style.transform="translate(-50%,-100%) rotate("+(-90+(currentChance-50)*1.35)+"deg)";
- $("soundBtn").textContent=soundOn?"\u1f50a":"\u1f507";
+ $("soundBtn").textContent=soundOn?"🔊":"🔇";
 }
 function renderGrid(){
  let q=$("search").value.toLowerCase().trim(),list=skins.filter(s=>s[0].toLowerCase().includes(q));
@@ -473,18 +615,28 @@ function renderGrid(){
 }
 function renderHistory(){
  if(!history.length){
-  $("historyList").innerHTML='<div class="emptyHistory">\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u043f\u043e\u043a\u0430 \u043f\u0443\u0441\u0442\u0430\u044f.<br><span>\u0421\u0434\u0435\u043b\u0430\u0439 \u043f\u0435\u0440\u0432\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434.</span></div>';return;
+  $("historyList").innerHTML='<div class="emptyHistory">\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u043f\u043e\u043a\u0430 \u043f\u0443\u0441\u0442\u0430\u044f.<br><span>\u0421\u0434\u0435\u043b\u0430\u0439 \u043f\u0435\u0440\u0432\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434 \u0438\u043b\u0438 \u043f\u043e\u043f\u043e\u043b\u043d\u0438 \u0431\u0430\u043b\u0430\u043d\u0441.</span></div>';return;
  }
- $("historyList").innerHTML=history.map(h=>`
- <div class="historyItem ${h.win?"success":"fail"}">
-  <div class="historyIcon">${h.win?"\u2713":"\u00d7"}</div>
-  <div class="historyMain"><b>${h.win?"\u0423\u0441\u043f\u0435\u0448\u043d\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434":"\u041d\u0435\u0443\u0434\u0430\u0447\u043d\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434"}</b><span>${h.from} \u2192 ${h.win?h.to:"\u0421\u0433\u043e\u0440\u0435\u043b"}</span></div>
-  <div class="historyMeta"><b>${Number(h.chance).toFixed(2)}%</b><span>${h.time}</span></div>
- </div>`).join("");
+ $("historyList").innerHTML=history.map(h=>{
+   if(h.type==="deposit"){
+     return `
+     <div class="historyItem deposit">
+      <div class="historyIcon">₽</div>
+      <div class="historyMain"><b>Пополнение баланса</b><span>Зачислено ${money(h.amount)}</span></div>
+      <div class="historyMeta"><b>+${money(h.amount)}</b><span>${h.time}</span></div>
+     </div>`;
+   }
+   return `
+   <div class="historyItem ${h.win?"success":"fail"}">
+    <div class="historyIcon">${h.win?"\u2713":"\u00d7"}</div>
+    <div class="historyMain"><b>${h.win?"\u0423\u0441\u043f\u0435\u0448\u043d\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434":"\u041d\u0435\u0443\u0434\u0430\u0447\u043d\u044b\u0439 \u0430\u043f\u0433\u0440\u0435\u0439\u0434"}</b><span>${h.from} \u2192 ${h.win?h.to:"\u0421\u0433\u043e\u0440\u0435\u043b"}</span></div>
+    <div class="historyMeta"><b>${Number(h.chance).toFixed(2)}%</b><span>${h.time}</span></div>
+   </div>`;
+ }).join("");
 }
-function addHistory(from,to,chance,win){
- history.unshift({from,to,chance,win,time:new Date().toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})});
- history=history.slice(0,30);save();renderHistory();
+function addHistory(entry){
+ history.unshift({...entry,time:new Date().toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})});
+ history=history.slice(0,40);renderHistory();
 }
 function setMultiplier(v){
  mult=Number(v);
@@ -510,12 +662,107 @@ document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>{
  clickSound();
 });
 $("soundBtn").onclick=()=>{soundOn=!soundOn;if(soundOn)clickSound();update();save()};
-$("add").onclick=()=>{
- balance+=500;clickSound();update();save();
- $("add").textContent="\u2713 +500 \u20bd";setTimeout(()=>$("add").textContent="+ \u041f\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u044c",900);
-};
-$("clearHistory").onclick=()=>{history=[];save();renderHistory();clickSound()};
+$("clearHistory").onclick=()=>{history=[];renderHistory();clickSound()};
 
+// ========== МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ ==========
+const DEP_MIN=100, DEP_MAX=10000, DEP_FEE=0.01;
+function openDeposit(){
+  $("depInput").value="";
+  $("depInput").classList.remove("invalid");
+  $("depErr").classList.remove("show");
+  updateDepositDetails(0);
+  $("depositModal").classList.add("show");
+  setTimeout(()=>$("depInput").focus(),120);
+  clickSound();
+}
+function closeDeposit(){
+  $("depositModal").classList.remove("show");
+  clickSound();
+}
+function updateDepositDetails(amount){
+  const fee = amount * DEP_FEE;
+  const total = amount + fee;
+  $("depAmount").textContent = money(amount);
+  $("depFee").textContent = money(fee);
+  $("depTotal").textContent = money(total);
+}
+function validateDeposit(amount){
+  if(!Number.isFinite(amount) || amount <= 0){
+    return {ok:false, msg:"Введите сумму"};
+  }
+  if(amount < DEP_MIN){
+    return {ok:false, msg:`Минимум ${money(DEP_MIN)}`};
+  }
+  if(amount > DEP_MAX){
+    return {ok:false, msg:`Максимум ${money(DEP_MAX)}`};
+  }
+  return {ok:true};
+}
+
+$("add").onclick=openDeposit;
+$("depCancel").onclick=closeDeposit;
+$("depositModal").onclick=e=>{if(e.target===$("depositModal"))closeDeposit()};
+
+$("depInput").oninput=e=>{
+  let v = parseFloat(e.target.value);
+  if(!Number.isFinite(v)) v = 0;
+  // Живая валидация
+  if(v > 0 && (v < DEP_MIN || v > DEP_MAX)){
+    e.target.classList.add("invalid");
+    const res = validateDeposit(v);
+    $("depErr").textContent = res.msg;
+    $("depErr").classList.add("show");
+  } else {
+    e.target.classList.remove("invalid");
+    $("depErr").classList.remove("show");
+  }
+  updateDepositDetails(Number.isFinite(v)?v:0);
+};
+
+document.querySelectorAll(".dep-quick button").forEach(b=>{
+  b.onclick=()=>{
+    $("depInput").value=b.dataset.q;
+    $("depInput").classList.remove("invalid");
+    $("depErr").classList.remove("show");
+    updateDepositDetails(Number(b.dataset.q));
+    clickSound();
+  };
+});
+
+$("depPolicyLink").onclick=()=>{
+  // Переход на страницу политики конфиденциальности.
+  // Вставьте сюда свой URL вместо "#".
+  window.open("https://tisonan-dev.github.io/TisonanDropPrivatePolicy/", "_blank");
+};
+
+$("depPay").onclick=()=>{
+  const amount = parseFloat($("depInput").value);
+  const res = validateDeposit(amount);
+  if(!res.ok){
+    $("depInput").classList.add("invalid");
+    $("depErr").textContent = res.msg;
+    $("depErr").classList.add("show");
+    showToast(res.msg,"error");
+    return;
+  }
+  // Имитация оплаты
+  $("depPay").disabled=true;
+  $("depPay").textContent="Обработка...";
+  const fee = amount * DEP_FEE;
+  const total = amount + fee;
+  setTimeout(()=>{
+    balance += amount;
+    depositSound();
+    showToast(`Пополнение баланса на ${money(amount)}`, "info", 3800);
+    addHistory({type:"deposit", amount:amount, fee:fee, total:total});
+    update();
+    $("depPay").disabled=false;
+    $("depPay").textContent="Оплатить";
+    closeDeposit();
+  }, 900);
+};
+
+// ========== АПГРЕЙД ==========
 $("upgrade").onclick=async()=>{
  if(spinning)return;
  if(balance<selected[1]){
@@ -526,39 +773,31 @@ $("upgrade").onclick=async()=>{
  spinning=true;
  const from=selected,target=targetSkin();
 
- /* Фиксируем шанс, который видит игрок, и считаем бросок от него же */
  const chance=currentChance;
  const win=Math.random()*100 < chance;
 
- balance-=from[1];save();update();
+ balance-=from[1];update();
 
  const gauge=$("gauge"),pointer=$("pointer");
  gauge.classList.remove("win","lose");gauge.classList.add("spinning");
  $("upgrade").disabled=true;$("upgrade").textContent="⟳ Крутим...";
  spinSound();
 
- /* Границы жёлтого сектора на gauge:
-    сектор начинается сверху (-90°) и идёт по часовой стрелке
-    на chance*3.6 градусов. */
  const sectorStart = -90;
  const sectorEnd   = -90 + chance * 3.6;
 
  let resultAngle;
 
  if(win){
-  /* Победили — стрелка строго внутри жёлтого сектора.
-     Небольшой отступ от краёв, чтобы не выглядело как «на границе». */
   const safeStart = sectorStart + 2;
   const safeEnd   = sectorEnd   - 2;
   resultAngle = safeStart + Math.random() * (safeEnd - safeStart);
  }else{
-  /* Проиграли — стрелка строго вне жёлтого сектора (серая зона). */
   const grayStart = sectorEnd + 2;
   const grayEnd   = sectorStart + 360 - 2;
   resultAngle = grayStart + Math.random() * (grayEnd - grayStart);
  }
 
- /* 7 полных оборотов + финальный угол */
  pointer.style.transition="transform 2.7s cubic-bezier(.10,.80,.12,1)";
  pointer.style.transform="translate(-50%,-100%) rotate("+(360*7+resultAngle)+"deg)";
 
@@ -569,14 +808,15 @@ $("upgrade").onclick=async()=>{
 
  if(win){
   balance+=target[1];
-  selected=target;
+  const original = skins.find(s => s[0] === target[0] && s[1] === target[1]);
+  if (original) selected = original;
   winSound();
  }else{
   loseSound();
  }
 
- addHistory(from[0],target[0],chance,win);
- update();renderGrid();save();
+ addHistory({win:win, from:from[0], to:target[0], chance:chance});
+ update();renderGrid();
 
  setTimeout(()=>{
   $("modal").classList.add("show");
@@ -594,12 +834,13 @@ $("close").onclick=()=>{
  $("modal").classList.remove("show");
  $("gauge").classList.remove("win","lose");
  $("pointer").style.transition="transform .35s ease";
- refreshTargetChance();   // <-- здесь это уместно: новая цель — новый шанс
+ refreshTargetChance();
  update();
  clickSound();
 };
 $("modal").onclick=e=>{if(e.target===$("modal"))$("close").click()};
 
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
 load();refreshTargetChance();
 document.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("active",Number(x.dataset.m)===mult));
 
