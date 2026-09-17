@@ -138,10 +138,85 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
 
 
 <style>
-.gauge{--chance-deg:180deg;background:conic-gradient(from -90deg,#ffd21c 0deg,#ffb900 var(--chance-deg),#262b32 var(--chance-deg) 360deg)!important}
-.pointer{width:5px!important;height:108px!important;border:0!important;background:linear-gradient(to top,transparent 0%,#ffd21c 18%,#ffe86b 100%)!important;border-radius:5px!important;transform-origin:50% 100%!important;z-index:8!important}
-.pointer:before{content:""!important;position:absolute!important;left:50%!important;top:-9px!important;transform:translateX(-50%)!important;width:0!important;height:0!important;border-left:9px solid transparent!important;border-right:9px solid transparent!important;border-bottom:15px solid #ffd21c!important;filter:drop-shadow(0 0 7px #ffd21c)!important}
-.pointer:after{content:""!important;position:absolute!important;left:50%!important;top:99px!important;transform:translate(-50%,-50%)!important;width:13px!important;height:13px!important;border-radius:50%!important;background:#ffd21c!important;border:3px solid #171b20!important;box-shadow:0 0 14px #ffd21c!important}
+/* ===== НОВЫЙ POINTER ===== */
+.pointer {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 108px;
+  margin-left: -2.5px;
+  margin-top: -108px;
+  background: linear-gradient(
+    to top,
+    transparent 0%,
+    #ffd21c 18%,
+    #ffe86b 100%
+  );
+  border: 0 !important;
+  border-radius: 5px;
+  transform-origin: 50% 100%;
+  transform: rotate(0deg);
+  filter: drop-shadow(0 0 8px #ffd21c);
+  transition: transform 2.7s cubic-bezier(.10,.80,.12,1);
+}
+
+.pointer:before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 15px solid #ffd21c;
+  filter: drop-shadow(0 0 7px #ffd21c);
+}
+
+.pointer:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 108px;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ffd21c;
+  border: 3px solid #171b20;
+  box-shadow: 0 0 14px #ffd21c;
+}
+
+.gauge.spinning .pointer {
+  transition: transform 2.7s cubic-bezier(.10,.80,.12,1);
+}
+
+/* ===== НОВЫЙ GAUGE: жёлтая зона симметрично снизу ===== */
+.gauge {
+  width: 285px;
+  height: 285px;
+  border-radius: 50%;
+  margin: auto;
+  display: grid;
+  place-items: center;
+
+  /* Жёлтая зона симметрично расположена снизу */
+  background: conic-gradient(
+    from 0deg,
+    #252a31 0deg calc(180deg - var(--chance-deg) / 2),
+    var(--accent) calc(180deg - var(--chance-deg) / 2)
+      calc(180deg + var(--chance-deg) / 2),
+    #252a31 calc(180deg + var(--chance-deg) / 2) 360deg
+  );
+
+  position: relative;
+  box-shadow: 0 0 40px #ffd21c1c;
+  transition: background .35s ease;
+}
+
 .gauge-inner{position:relative;z-index:4}
 </style>
 
@@ -466,39 +541,44 @@ background:#fff;border:2px solid #ffd21c;box-shadow:0 0 12px #ffd21c}
 </div>
 
 <script>
-// ========== СПИСОК СКИНОВ ==========
+// ========== СПИСОК СКИНОВ (ОТСОРТИРОВАН ПО ЦЕНЕ: ОТ ДЕШЁВОГО К ДОРОГОМУ) ==========
 const skins=[
- ["AWP | Nightwave",380,"#8c6cff","common","rifle"],
- ["Glock-18 | Water Elemental",240,"#3ca6ff","common","pistol"],
- ["USP-S | Cortex",310,"#e27aff","common","pistol"],
- ["P250 | Cyber Shell",180,"#7aedff","common","pistol"],
  ["MP9 | Hydra",150,"#5ce3a0","common","smg"],
+ ["P250 | Cyber Shell",180,"#7aedff","common","pistol"],
+ ["Glock-18 | Water Elemental",240,"#3ca6ff","common","pistol"],
  ["Galil AR | Vandal",280,"#e8a33d","common","rifle"],
+ ["USP-S | Cortex",310,"#e27aff","common","pistol"],
  ["FAMAS | Mecha Industries",330,"#6ec9ff","common","rifle"],
+ ["AWP | Nightwave",380,"#8c6cff","common","rifle"],
  ["M4A1-S | Decimator",520,"#f54b65","rare","rifle"],
+ ["Desert Eagle | Ocean Drive",590,"#3dc9ff","rare","pistol"],
+ ["AWP | Chromatic Aberration",680,"#a57aff","rare","rifle"],
  ["AK-47 | Neon Rider",760,"#ff9f1a","rare","rifle"],
  ["M4A4 | The Coalition",920,"#ffce32","rare","rifle"],
- ["AWP | Chromatic Aberration",680,"#a57aff","rare","rifle"],
- ["Desert Eagle | Ocean Drive",590,"#3dc9ff","rare","pistol"],
  ["AWP | Redline",1100,"#e84b55","epic","rifle"],
- ["AK-47 | Asiimov",1350,"#ff7b3d","epic","rifle"],
- ["Desert Eagle | Printstream",1480,"#e8edf5","epic","pistol"],
  ["M4A1-S | Player Two",1250,"#ff6b9d","epic","rifle"],
  ["USP-S | Kill Confirmed",1320,"#ff4d6d","epic","pistol"],
+ ["AK-47 | Asiimov",1350,"#ff7b3d","epic","rifle"],
+ ["Desert Eagle | Printstream",1480,"#e8edf5","epic","pistol"],
  ["M4A1-S | Printstream",1850,"#d8e4ff","legendary","rifle"],
  ["AK-47 | Fire Serpent",2400,"#ff8c42","legendary","rifle"],
  ["AWP | Dragon Lore",5200,"#ffd700","legendary","rifle"],
  ["AK-47 | Wild Lotus",6800,"#ff5c9a","mythic","rifle"],
  ["M4A4 | Howl",8500,"#ff3a3a","mythic","rifle"],
- ["AWP | Gungnir",9200,"#5ce3ff","mythic","rifle"]
+ ["AWP | Gungnir",9200,"#5ce3ff","mythic","rifle"],
+ ["AWP | The End",10000,"#ff2bd6","mythic","rifle"]
 ];
 
 const rarityNames={common:"\u041e\u0431\u044b\u0447\u043d\u044b\u0439",rare:"\u0420\u0435\u0434\u043a\u0438\u0439",epic:"\u042d\u043f\u0438\u0447\u0435\u0441\u043a\u0438\u0439",legendary:"\u041b\u0435\u0433\u0435\u043d\u0434\u0430\u0440\u043d\u044b\u0439",mythic:"\u041c\u0438\u0444\u0438\u0447\u0435\u0441\u043a\u0438\u0439"};
 
-let selected=skins[6],balance=2210,mult=2,activeCategory="all";
+let selected=skins[5],balance=2210,mult=2,activeCategory="all";
 let soundOn=true,spinning=false,history=[],currentChance=50;
 const $=id=>document.getElementById(id);
 const money=n=>Number(n).toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2})+" \u20bd";
+
+const MIN_PRICE = skins[0][1];
+const MAX_PRICE = skins[skins.length-1][1];
+const MAX_SKIN = skins[skins.length-1];
 
 /* === TOAST === */
 function showToast(text,type="error",duration=3200){
@@ -538,28 +618,38 @@ function loseSound(){[360,300,240,180].forEach((f,i)=>tone(f,.2,"sawtooth",.025,
 function depositSound(){[523,659,784,1046].forEach((f,i)=>tone(f,.15,"sine",.04,i*.08))}
 
 // ========== ЛОГИКА ЦЕЛИ ==========
-// Самый дорогой скин апгрейдится в ×1.5
+// Целевой скин — БЛИЖАЙШИЙ по цене к selected[1] * mult.
+// Если такого нет (выбран максимальный скин) — цель = сам выбранный скин,
+// и при выигрыше на баланс зачисляется цена * множитель.
 function targetSkin(){
- const maxSkin = skins[skins.length-1];
- if (selected === maxSkin) {
-   return [maxSkin[0], +(maxSkin[1]*1.5).toFixed(2), maxSkin[2], maxSkin[3], maxSkin[4]];
- }
- const wanted = selected[1] * mult;
- const found = skins.find(s => s[1] >= wanted);
- const target = found || maxSkin;
- if (target[1] < selected[1]) return maxSkin;
- return target;
+  const wanted = selected[1] * mult;
+  // Если выбран максимальный скин — цель = он сам (особый случай)
+  if (selected === MAX_SKIN) return MAX_SKIN;
+  // Если хотим больше максимума — цель максимальная
+  if (wanted >= MAX_PRICE) return MAX_SKIN;
+  // Ищем ближайший по цене скин (минимум |price - wanted|)
+  let best = null;
+  let bestDiff = Infinity;
+  for (const s of skins){
+    if (s[1] <= selected[1]) continue; // нельзя апгрейдить в дешевле/равное
+    const diff = Math.abs(s[1] - wanted);
+    if (diff < bestDiff){
+      bestDiff = diff;
+      best = s;
+    }
+  }
+  // Если не нашли ни одного дороже — цель = сам selected (особый случай)
+  return best || MAX_SKIN;
 }
 
+// ========== ДИНАМИЧЕСКИЙ ШАНС ==========
 function chanceForTarget(target){
- const index = skins.findIndex(s => s[0] === target[0] && Math.abs(s[1] - target[1]) < 1);
- const row = Math.max(0, Math.floor((index >= 0 ? index : skins.length-1) / 6));
- if(row===0)return 50;
- if(row===1)return +(21+Math.random()*7).toFixed(2);
- if(row===2)return +(2+Math.random()*6).toFixed(2);
- if(row===3)return +(1+Math.random()*4).toFixed(2);
- return +(0.5+Math.random()*2.5).toFixed(2);
+  const ratio = (target[1] - MIN_PRICE) / (MAX_PRICE - MIN_PRICE);
+  const clamped = Math.max(0, Math.min(1, ratio));
+  const chance = 50 * Math.pow(1 - clamped, 1.6) + 0.5;
+  return Math.round(chance * 100) / 100;
 }
+
 function refreshTargetChance(){currentChance=chanceForTarget(targetSkin())}
 
 function visualMarkup(s,mini=""){
@@ -595,7 +685,9 @@ function update(){
  $("toGlow").style.background=target[2];
  setMainVisual("fromVisual",selected);
  setMainVisual("toVisual",target);
- $("pointer").style.transform="translate(-50%,-100%) rotate("+(-90+(currentChance-50)*1.35)+"deg)";
+ // === Угол указателя: центр внизу (180°) ===
+ $("pointer").style.transform =
+   "rotate(" + (180 + (currentChance - 50) * 1.35) + "deg)";
  $("soundBtn").textContent=soundOn?"🔊":"🔇";
 }
 function renderGrid(){
@@ -706,7 +798,6 @@ $("depositModal").onclick=e=>{if(e.target===$("depositModal"))closeDeposit()};
 $("depInput").oninput=e=>{
   let v = parseFloat(e.target.value);
   if(!Number.isFinite(v)) v = 0;
-  // Живая валидация
   if(v > 0 && (v < DEP_MIN || v > DEP_MAX)){
     e.target.classList.add("invalid");
     const res = validateDeposit(v);
@@ -730,8 +821,6 @@ document.querySelectorAll(".dep-quick button").forEach(b=>{
 });
 
 $("depPolicyLink").onclick=()=>{
-  // Переход на страницу политики конфиденциальности.
-  // Вставьте сюда свой URL вместо "#".
   window.open("https://tisonan-dev.github.io/TisonanDropPrivatePolicy/", "_blank");
 };
 
@@ -745,7 +834,6 @@ $("depPay").onclick=()=>{
     showToast(res.msg,"error");
     return;
   }
-  // Имитация оплаты
   $("depPay").disabled=true;
   $("depPay").textContent="Обработка...";
   const fee = amount * DEP_FEE;
@@ -772,6 +860,8 @@ $("upgrade").onclick=async()=>{
  audio();
  spinning=true;
  const from=selected,target=targetSkin();
+ // Особый случай: апгрейд на самого себя (максимальный скин) — выигрыш = цена * множитель
+ const selfUpgrade = (target === from);
 
  const chance=currentChance;
  const win=Math.random()*100 < chance;
@@ -783,23 +873,29 @@ $("upgrade").onclick=async()=>{
  $("upgrade").disabled=true;$("upgrade").textContent="⟳ Крутим...";
  spinSound();
 
- const sectorStart = -90;
- const sectorEnd   = -90 + chance * 3.6;
+ // === НОВЫЙ РАСЧЁТ УГЛОВ: сектор симметрично снизу (180°) ===
+ const halfChance = chance * 1.8;
+
+ const sectorStart = 180 - halfChance;
+ const sectorEnd = 180 + halfChance;
 
  let resultAngle;
 
- if(win){
-  const safeStart = sectorStart + 2;
-  const safeEnd   = sectorEnd   - 2;
-  resultAngle = safeStart + Math.random() * (safeEnd - safeStart);
- }else{
-  const grayStart = sectorEnd + 2;
-  const grayEnd   = sectorStart + 360 - 2;
-  resultAngle = grayStart + Math.random() * (grayEnd - grayStart);
+ if (win) {
+   const safeStart = sectorStart + 2;
+   const safeEnd = sectorEnd - 2;
+   resultAngle = safeStart + Math.random() * (safeEnd - safeStart);
+ } else {
+   const grayStart = sectorEnd + 2;
+   const grayEnd = sectorStart + 360 - 2;
+   resultAngle = grayStart + Math.random() * (grayEnd - grayStart);
  }
 
- pointer.style.transition="transform 2.7s cubic-bezier(.10,.80,.12,1)";
- pointer.style.transform="translate(-50%,-100%) rotate("+(360*7+resultAngle)+"deg)";
+ pointer.style.transition =
+   "transform 2.7s cubic-bezier(.10,.80,.12,1)";
+
+ pointer.style.transform =
+   "rotate(" + (360 * 7 + resultAngle) + "deg)";
 
  await new Promise(r=>setTimeout(r,2800));
 
@@ -807,24 +903,39 @@ $("upgrade").onclick=async()=>{
  gauge.classList.add(win?"win":"lose");
 
  if(win){
-  balance+=target[1];
-  const original = skins.find(s => s[0] === target[0] && s[1] === target[1]);
-  if (original) selected = original;
+  if(selfUpgrade){
+    // Начисляем цену * множитель на баланс
+    const payout = from[1] * mult;
+    balance += payout;
+  } else {
+    balance += target[1];
+    const original = skins.find(s => s[0] === target[0] && s[1] === target[1]);
+    if (original) selected = original;
+  }
   winSound();
  }else{
   loseSound();
  }
 
- addHistory({win:win, from:from[0], to:target[0], chance:chance});
+ addHistory({win:win, from:from[0], to:selfUpgrade?from[0]:target[0], chance:chance});
  update();renderGrid();
 
  setTimeout(()=>{
   $("modal").classList.add("show");
   $("resultIcon").textContent=win?"★":"×";
   $("resultTitle").textContent=win?"Апгрейд успешен!":"Не повезло!";
-  $("resultText").innerHTML=win
-   ?`Ты получил <b>${target[0]}</b> стоимостью <b>${money(target[1])}</b>.`
-   :`Предмет <b>${from[0]}</b> сгорел.`;
+  if(win){
+    if(selfUpgrade){
+      const payout = from[1] * mult;
+      $("resultText").innerHTML =
+        `Ты прокрутил <b>${from[0]}</b> и получил <b>${money(payout)}</b> на баланс (×${mult}).`;
+    } else {
+      $("resultText").innerHTML =
+        `Ты получил <b>${target[0]}</b> стоимостью <b>${money(target[1])}</b>.`;
+    }
+  } else {
+    $("resultText").innerHTML=`Предмет <b>${from[0]}</b> сгорел.`;
+  }
   $("upgrade").disabled=false;
   $("upgrade").textContent="▲ Апгрейд";
   spinning=false;
